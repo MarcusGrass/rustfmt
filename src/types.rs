@@ -613,7 +613,11 @@ impl Rewrite for ast::GenericParam {
                 TypeDensity::Wide => " = ",
             };
             param.push_str(eq_str);
-            let budget = shape.width.checked_sub(param.len())?;
+            // Need to allow the space required for the rewrite instead of bailing
+            // in that case a line that's too long will be produced, rather than an ICE.
+            // Another way to solve this, is to implement splitting into two lines for the case
+            // where the rhs of the `=` causes an overflow.
+            let budget = usize::MAX;
             let rewrite =
                 def.rewrite(context, Shape::legacy(budget, shape.indent + param.len()))?;
             param.push_str(&rewrite);
